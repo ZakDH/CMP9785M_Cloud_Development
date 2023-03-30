@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "FNhaiWbkhtmdSNR6EdLATMboOj480lbE+kgmILgplbwTE0/An60K4NmXnadylxnJBs5WiByREISIr1EgnamWiA==",
+  "dgSpecHash": "qj65cHT/MIxy6hCD8OYYyC8u3hg+Z6iNbdQktaksFJI8d7KTCk1XRe0sN4xnHANol6XdbdSK+pRn5OgkuQzcVg==",
   "success": true,
-  "projectFilePath": "G:\\My Drive\\University\\Year 4\\Cloud Development\\test\\SimulatedDevice\\SimulatedDevice.csproj",
+  "projectFilePath": "C:\\Users\\zharg\\Desktop\\workshop 2\\SimulatedDevice\\SimulatedDevice.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\zharg\\.nuget\\packages\\dotnetty.buffers\\0.6.0\\dotnetty.buffers.0.6.0.nupkg.sha512",
     "C:\\Users\\zharg\\.nuget\\packages\\dotnetty.codecs\\0.6.0\\dotnetty.codecs.0.6.0.nupkg.sha512",

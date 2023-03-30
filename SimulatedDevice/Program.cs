@@ -5,39 +5,29 @@
 // For samples see: https://github.com/Azure/azure-iot-sdk-csharp/tree/master/iothub/device/samples
 
 using Microsoft.Azure.Devices.Client;
-using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
+
 namespace SimulatedDevice
 {
-    /// reference - https://github.com/Azure/azure-iot-sdk-csharp/blob/main/iothub/device/samples/getting%20started/SimulatedDeviceWithCommand/Program.cs
     /// <summary>
     /// This sample illustrates the very basics of a device app sending telemetry. For a more comprehensive device app sample, please see
     /// <see href="https://github.com/Azure-Samples/azure-iot-samples-csharp/tree/master/iot-hub/Samples/device/DeviceReconnectionSample"/>.
     /// </summary>
-    class TelemetryData
-    {
-        public string deviceId {get; set;}
-        public double heartRate {get; set;}
-        public int bloodPressureSystolic {get; set;}
-        public int bloodPressureDiastolic {get; set;}
-        public double bodyTemperature {get; set;}
-    }
-
     internal class Program
     {
         private static DeviceClient s_deviceClient;
         private static readonly TransportType s_transportType = TransportType.Mqtt;
-        private static TimeSpan s_telemetryInterval = TimeSpan.FromSeconds(5);
 
         // The device connection string to authenticate the device with your IoT hub.
         // Using the Azure CLI:
         // az iot hub device-identity show-connection-string --hub-name {YourIoTHubName} --device-id MyDotnetDevice --output table
-        private static string s_connectionString = "HostName=ZakDHTempSensorHub.azure-devices.net;DeviceId=zakdh_simdevice;SharedAccessKey=62akxBWSOQ/wCItrYHGM/soDDarf3IB6RCkl2hkdMi8=";
+       private static string s_connectionString = "HostName=ZakDHTempSensorHub.azure-devices.net;DeviceId=zakdh_simdevice;SharedAccessKey=62akxBWSOQ/wCItrYHGM/soDDarf3IB6RCkl2hkdMi8=";
 		
         private static async Task Main(string[] args)
         {
@@ -48,8 +38,6 @@ namespace SimulatedDevice
 
             // Connect to the IoT hub using the MQTT protocol
             s_deviceClient = DeviceClient.CreateFromConnectionString(s_connectionString, s_transportType);
-
-            await s_deviceClient.SetMethodHandlerAsync("SetTelemetryInterval", SetTelemetryInterval, null);
 
             // Set up a condition to quit the sample
             Console.WriteLine("Press control-C to exit.");
@@ -66,26 +54,6 @@ namespace SimulatedDevice
 
             s_deviceClient.Dispose();
             Console.WriteLine("Device simulator finished.");
-        }
-
-        private static Task<MethodResponse> SetTelemetryInterval(MethodRequest methodRequest, object userContext){
-            string data = Encoding.UTF8.GetString(methodRequest.Data);
-            if (int.TryParse(data, out int telemetryIntervalInSeconds))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Telemetry interval set to {s_telemetryInterval}");
-                Console.ResetColor();
-
-                // Acknowlege the direct method call with a 200 success message.
-                string result = $"{{\"result\":\"Executed direct method: {methodRequest.Name}\"}}";
-                return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 200));
-            }
-            else
-            {
-                // Acknowlege the direct method call with a 400 error message.
-                string result = "{\"result\":\"Invalid parameter\"}";
-                return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 400));
-            }
         }
 
         private static void ValidateConnectionString(string[] args)
@@ -117,37 +85,41 @@ namespace SimulatedDevice
             }
         }
 
+        // Async method to send simulated telemetry
         private static async Task SendDeviceToCloudMessagesAsync(CancellationToken ct)
         {
+            // Initial telemetry values
+            double minTemperature = 20;
+            double minHumidity = 60;
             var rand = new Random();
 
             while (!ct.IsCancellationRequested)
             {
-                var telemetryDataArray = new[]
-                {
-                    new TelemetryData
+                double currentTemperature = minTemperature + rand.NextDouble() * 15;
+                double currentHumidity = minHumidity + rand.NextDouble() * 20;
+
+                // Create JSON message
+                string messageBody = JsonSerializer.Serialize(
+                    new
                     {
-                        heartRate = (int)Math.Ceiling(50 + rand.NextDouble() * 50),
-                        bloodPressureSystolic = rand.Next(90, 140),
-                        bloodPressureDiastolic = rand.Next(60, 90),
-                        bodyTemperature = Math.Round(36.5 + rand.NextDouble() * 3, 1),
-                        deviceId = "zakdh_simdevice"
-                    },
+                        temperature = currentTemperature,
+                        humidity = currentHumidity,
+                    });
+                using var message = new Message(Encoding.ASCII.GetBytes(messageBody))
+                {
+                    ContentType = "application/json",
+                    ContentEncoding = "utf-8",
                 };
 
-                var telemetryJson = JsonConvert.SerializeObject(telemetryDataArray);
-                var telemetryMessage = new Message(Encoding.ASCII.GetBytes(telemetryJson));
+                // Add a custom application property to the message.
+                // An IoT hub can filter on these properties without access to the message body.
+                message.Properties.Add("temperatureAlert", (currentTemperature > 30) ? "true" : "false");
 
-                telemetryMessage.Properties.Add("heartRateAlert", (telemetryDataArray[0].heartRate > 90) ? "true" : "false");
-                telemetryMessage.Properties.Add("bloodPressureSystolicAlert", (telemetryDataArray[0].bloodPressureSystolic > 120) ? "true" : "false");
-                telemetryMessage.Properties.Add("bloodPressureDiastolicAlert", (telemetryDataArray[0].bloodPressureDiastolic > 80) ? "true" : "false");
-                telemetryMessage.Properties.Add("bodyTemperatureAlert", (telemetryDataArray[0].bodyTemperature > 38) ? "true" : "false");
+                // Send the telemetry message
+                await s_deviceClient.SendEventAsync(message);
+                Console.WriteLine($"{DateTime.Now} > Sending message: {messageBody}");
 
-                await s_deviceClient.SendEventAsync(telemetryMessage);
-
-                Console.WriteLine($"{DateTime.Now} > Sending message: {telemetryJson}");
-
-                await Task.Delay(s_telemetryInterval);
+                await Task.Delay(3000);
             }
         }
     }

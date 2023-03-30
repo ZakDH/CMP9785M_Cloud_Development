@@ -6660,11 +6660,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "G:\\My Drive\\University\\Year 4\\Cloud Development\\test\\SimulatedDevice\\SimulatedDevice.csproj",
+      "projectUniqueName": "C:\\Users\\zharg\\Desktop\\workshop 2\\SimulatedDevice\\SimulatedDevice.csproj",
       "projectName": "SimulatedDevice",
-      "projectPath": "G:\\My Drive\\University\\Year 4\\Cloud Development\\test\\SimulatedDevice\\SimulatedDevice.csproj",
+      "projectPath": "C:\\Users\\zharg\\Desktop\\workshop 2\\SimulatedDevice\\SimulatedDevice.csproj",
       "packagesPath": "C:\\Users\\zharg\\.nuget\\packages\\",
-      "outputPath": "G:\\My Drive\\University\\Year 4\\Cloud Development\\test\\SimulatedDevice\\obj\\",
+      "outputPath": "C:\\Users\\zharg\\Desktop\\workshop 2\\SimulatedDevice\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\zharg\\AppData\\Roaming\\NuGet\\NuGet.Config",
