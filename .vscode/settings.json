@@ -3,5 +3,7 @@
     "azureFunctions.projectLanguage": "C#",
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
-    "azureFunctions.preDeployTask": "publish (functions)"
+    "azureFunctions.preDeployTask": "publish (functions)",
+    "appService.defaultWebAppToDeploy": "/subscriptions/bb830b2e-0164-4472-bc3e-a04080266835/resourceGroups/appsvc_windows_centralus/providers/Microsoft.Web/sites/zakdhwebapp",
+    "appService.deploySubpath": "WebApp"
 }
