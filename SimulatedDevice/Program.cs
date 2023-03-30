@@ -24,7 +24,7 @@ namespace SimulatedDevice
     class TelemetryData
     {
         public string deviceId {get; set;}
-        public double heartRate {get; set;}
+        public int heartRate {get; set;}
         public int bloodPressureSystolic {get; set;}
         public int bloodPressureDiastolic {get; set;}
         public double bodyTemperature {get; set;}
@@ -143,8 +143,9 @@ namespace SimulatedDevice
                         deviceId = "zakdh_simdevice" //assigns id to simulated device
                     },
                 };
+                JsonSerializerSettings settings = new JsonSerializerSettings { Formatting = Formatting.Indented };
 
-                var telemetryJson = JsonConvert.SerializeObject(telemetryDataArray); //serialises the JSON payload so it can be transmitted to IoT hub
+                var telemetryJson = JsonConvert.SerializeObject(telemetryDataArray, settings); //serialises the JSON payload so it can be transmitted to IoT hub
                 var telemetryMessage = new Message(Encoding.ASCII.GetBytes(telemetryJson));
 
                 telemetryMessage.Properties.Add("heartRateAlert", (telemetryDataArray[0].heartRate > 90) ? "true" : "false"); //sets alert to true if heart rate is greater than 90

@@ -8,6 +8,10 @@ using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System.Collections;
 
 namespace Uni.Assignment
 {
@@ -55,5 +59,16 @@ namespace Uni.Assignment
             }
             output = telemetryDataList.ToArray();
         }
+        [FunctionName("GetTelemetry")]
+        public static IActionResult GetTelemetry(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "temperature/")] HttpRequest req,
+        [CosmosDB(databaseName: "IoTData",
+                  collectionName: "TelemetryData",
+                  ConnectionStringSetting = "cosmosDBConnectionString",
+                      SqlQuery = "SELECT TOP 1 * FROM c ORDER BY c._ts DESC")] IEnumerable temperatureItem,
+                  ILogger log)
+      {
+        return new OkObjectResult(temperatureItem);
+      }
     }
 }
