@@ -61,14 +61,18 @@ namespace Uni.Assignment
         }
         [FunctionName("GetTelemetry")]
         public static IActionResult GetTelemetry(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "temperature/")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/")] HttpRequest req,
         [CosmosDB(databaseName: "IoTData",
                   collectionName: "TelemetryData",
                   ConnectionStringSetting = "cosmosDBConnectionString",
-                      SqlQuery = "SELECT TOP 1 * FROM c ORDER BY c._ts DESC")] IEnumerable temperatureItem,
+                      SqlQuery = "SELECT TOP 1 c.id, c.heartRate, c.bloodPressureSystolic, c.bloodPressureDiastolic, c.bodyTemperature FROM c ORDER BY c._ts DESC")] IEnumerable telemetryData,
                   ILogger log)
       {
-        return new OkObjectResult(temperatureItem);
+        var settings = new JsonSerializerSettings{
+            Formatting = Formatting.Indented
+        };
+        var json = JsonConvert.SerializeObject(telemetryData, settings);
+        return new OkObjectResult(json);
       }
     }
 }
