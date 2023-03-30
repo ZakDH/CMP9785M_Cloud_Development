@@ -1,0 +1,7 @@
+C:\Users\zharg\Desktop\CMP9785M_Cloud_Development\WebApp\bin\Release\net6.0\publish\WebApp.exe
+C:\Users\zharg\Desktop\CMP9785M_Cloud_Development\WebApp\bin\Release\net6.0\publish\appsettings.Development.json
+C:\Users\zharg\Desktop\CMP9785M_Cloud_Development\WebApp\bin\Release\net6.0\publish\appsettings.json
+C:\Users\zharg\Desktop\CMP9785M_Cloud_Development\WebApp\bin\Release\net6.0\publish\WebApp.dll
+C:\Users\zharg\Desktop\CMP9785M_Cloud_Development\WebApp\bin\Release\net6.0\publish\WebApp.deps.json
+C:\Users\zharg\Desktop\CMP9785M_Cloud_Development\WebApp\bin\Release\net6.0\publish\WebApp.runtimeconfig.json
+C:\Users\zharg\Desktop\CMP9785M_Cloud_Development\WebApp\bin\Release\net6.0\publish\WebApp.pdb
