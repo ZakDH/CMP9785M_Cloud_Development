@@ -12,6 +12,13 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Collections;
+using System;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
+using System.Threading.Tasks;
+using System.Linq;
+using Microsoft.Azure.Documents.Linq;
+
 
 namespace Uni.Assignment
 {
@@ -26,8 +33,6 @@ namespace Uni.Assignment
     }
     public class myIoTHubTrigger
     {
-        private static HttpClient client = new HttpClient();
-        
         [FunctionName("myIoTHubTrigger")]
         public static void Run([IoTHubTrigger("messages/events", Connection = "AzureEventHubConnectionString")] EventData message,
         [CosmosDB(databaseName: "IoTData",
@@ -59,20 +64,55 @@ namespace Uni.Assignment
             }
             output = telemetryDataList.ToArray();
         }
+        
         [FunctionName("GetTelemetry")]
-        public static IActionResult GetTelemetry(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/")] HttpRequest req,
-        [CosmosDB(databaseName: "IoTData",
-                  collectionName: "TelemetryData",
-                  ConnectionStringSetting = "cosmosDBConnectionString",
-                      SqlQuery = "SELECT TOP 1 c.id, c.heartRate, c.bloodPressureSystolic, c.bloodPressureDiastolic, c.bodyTemperature FROM c ORDER BY c._ts DESC")] IEnumerable telemetryData,
-                  ILogger log)
-      {
+        public static async Task<IActionResult> GetTelemetryAsync(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/{start}/{end}")] HttpRequest req, string start, string end,
+        [CosmosDB(databaseName: "IoTData", 
+        collectionName: "TelemetryData", 
+        ConnectionStringSetting = "cosmosDBConnectionString")]
+        DocumentClient client, ILogger log)
+        {
+
+        DateTimeOffset startTimestamp = DateTimeOffset.Parse(start);
+        DateTimeOffset endTimestamp = DateTimeOffset.Parse(end);
+
+        //log.LogInformation($"startTimestamp: {start} -> {startTimestamp} endTimestamp: {end} -> {endTimestamp}");
+        //log.LogInformation($"{telemetryData}");
+        var query = new SqlQuerySpec
+        {
+            QueryText = "SELECT c.id, c.heartRate, c.bloodPressureSystolic, c.bloodPressureDiastolic, c.bodyTemperature FROM c WHERE c._ts >= @startTimestamp AND c._ts <= @endTimestamp ORDER BY c._ts DESC",
+            Parameters = new SqlParameterCollection
+            {
+                new SqlParameter("@startTimestamp", startTimestamp.ToUnixTimeSeconds()),
+                new SqlParameter("@endTimestamp", endTimestamp.ToUnixTimeSeconds())
+            }
+        };
+
+        var collectionLink = UriFactory.CreateDocumentCollectionUri("IoTData", "TelemetryData");
+        
+        var queryOptions = new FeedOptions 
+        { 
+            EnableCrossPartitionQuery = true,
+            PopulateQueryMetrics = false,
+        };
+        var documents = client.CreateDocumentQuery<Document>(collectionLink, query, queryOptions).AsDocumentQuery();
+
+        var result = await documents.ExecuteNextAsync<Document>();
+        var telemetryData = result.Select(doc => new 
+        {
+            id = doc.GetPropertyValue<string>("id"),
+            heartRate = doc.GetPropertyValue<int>("heartRate"),
+            bloodPressureSystolic = doc.GetPropertyValue<int>("bloodPressureSystolic"),
+            bloodPressureDiastolic = doc.GetPropertyValue<int>("bloodPressureDiastolic"),
+            bodyTemperature = doc.GetPropertyValue<double>("bodyTemperature")
+        });
+
         var settings = new JsonSerializerSettings{
             Formatting = Formatting.Indented
         };
         var json = JsonConvert.SerializeObject(telemetryData, settings);
         return new OkObjectResult(json);
-      }
+        }
     }
 }
