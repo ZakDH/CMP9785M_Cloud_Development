@@ -77,8 +77,6 @@ namespace Uni.Assignment
         DateTimeOffset startTimestamp = DateTimeOffset.Parse(start);
         DateTimeOffset endTimestamp = DateTimeOffset.Parse(end);
 
-        //log.LogInformation($"startTimestamp: {start} -> {startTimestamp} endTimestamp: {end} -> {endTimestamp}");
-        //log.LogInformation($"{telemetryData}");
         var query = new SqlQuerySpec
         {
             QueryText = "SELECT TOP 10 c.id, c.heartRate, c.bloodPressureSystolic, c.bloodPressureDiastolic, c.bodyTemperature FROM c WHERE c._ts >= @startTimestamp AND c._ts <= @endTimestamp ORDER BY c._ts DESC",
