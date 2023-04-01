@@ -10,18 +10,26 @@
     <div>
         <label for="startDate">Start Date:</label>
         <input type="date" id="startDate" name="startDate">
+        <label for="startTime">Start Time:</label>
+        <input type="time" id="startTime" name="startTime">
+    </div>
+    <div>
         <label for="endDate">End Date:</label>
         <input type="date" id="endDate" name="endDate">
-        <button onclick="updateTelemetryUrl()">Get Telemetry</button>
+        <label for="endTime">End Time:</label>
+        <input type="time" id="endTime" name="endTime">
     </div>
+    <button onclick="updateTelemetryUrl()">Get Telemetry</button>
     <iframe id="telemetryFrame" src="https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/{start}/{end}" style="width:800px; height:600px;"></iframe>
 </div>
 
 <script>
     function updateTelemetryUrl() {
         var startDate = document.getElementById("startDate").value;
+        var startTime = document.getElementById("startTime").value;
         var endDate = document.getElementById("endDate").value;
-        var telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "/" + endDate;
+        var endTime = document.getElementById("endTime").value;
+        var telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "T" + startTime + "/" + endDate + "T" + endTime;
         document.getElementById("telemetryFrame").src = telemetryUrl;
     }
 </script>
