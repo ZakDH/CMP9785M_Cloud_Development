@@ -5,7 +5,23 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Last Sensor Value</h1>
+    <h1 class="display-4">Simulation Data Values</h1>
     <p></p>
-    <iframe src="https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/?">
+    <div>
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" name="startDate">
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate" name="endDate">
+        <button onclick="updateTelemetryUrl()">Get Telemetry</button>
+    </div>
+    <iframe id="telemetryFrame" src="https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/{start}/{end}" style="width:800px; height:600px;"></iframe>
 </div>
+
+<script>
+    function updateTelemetryUrl() {
+        var startDate = document.getElementById("startDate").value;
+        var endDate = document.getElementById("endDate").value;
+        var telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "/" + endDate;
+        document.getElementById("telemetryFrame").src = telemetryUrl;
+    }
+</script>
