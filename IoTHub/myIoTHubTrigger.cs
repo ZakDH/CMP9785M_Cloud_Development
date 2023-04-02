@@ -67,9 +67,9 @@ namespace Uni.Assignment
         
         [FunctionName("GetTelemetry")]
         public static async Task<IActionResult> GetTelemetryAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/{start}/{end}")] HttpRequest req, string start, string end,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/{start}/{end}/{filter?}")] HttpRequest req, string start, string end, string filter,
         [CosmosDB(databaseName: "IoTData", 
-        collectionName: "TelemetryData", 
+        collectionName: "TelemetryData",
         ConnectionStringSetting = "cosmosDBConnectionString")]
         DocumentClient client, ILogger log)
         {
@@ -77,15 +77,21 @@ namespace Uni.Assignment
         DateTimeOffset startTimestamp = DateTimeOffset.Parse(start);
         DateTimeOffset endTimestamp = DateTimeOffset.Parse(end);
 
+        var telemetryFields = new string[] { "heartRate", "bloodPressureSystolic", "bloodPressureDiastolic", "bodyTemperature" };
+        var selectedFields = filter.Split(',');
+        var validFields = selectedFields.Intersect(telemetryFields);
+        var selectClause = string.Join(",", validFields.Select(f => $"c.{f}"));
+        var queryText = $"SELECT c.id, c._ts, {selectClause} FROM c WHERE c._ts >= @startTimestamp AND c._ts <= @endTimestamp ORDER BY c._ts DESC";
         var query = new SqlQuerySpec
         {
-            QueryText = "SELECT c.id, c.heartRate, c.bloodPressureSystolic, c.bloodPressureDiastolic, c.bodyTemperature FROM c WHERE c._ts >= @startTimestamp AND c._ts <= @endTimestamp ORDER BY c._ts DESC",
+            QueryText = queryText,
             Parameters = new SqlParameterCollection
             {
                 new SqlParameter("@startTimestamp", startTimestamp.ToUnixTimeSeconds()),
                 new SqlParameter("@endTimestamp", endTimestamp.ToUnixTimeSeconds())
             }
         };
+
 
         var collectionLink = UriFactory.CreateDocumentCollectionUri("IoTData", "TelemetryData");
         
@@ -97,15 +103,34 @@ namespace Uni.Assignment
         var documents = client.CreateDocumentQuery<Document>(collectionLink, query, queryOptions).AsDocumentQuery();
 
         var result = await documents.ExecuteNextAsync<Document>();
-        var telemetryData = result.Select(doc => new 
+        var telemetryData = result.Select(doc => 
         {
-            id = doc.GetPropertyValue<string>("id"),
-            heartRate = doc.GetPropertyValue<int>("heartRate"),
-            bloodPressureSystolic = doc.GetPropertyValue<int>("bloodPressureSystolic"),
-            bloodPressureDiastolic = doc.GetPropertyValue<int>("bloodPressureDiastolic"),
-            bodyTemperature = doc.GetPropertyValue<double>("bodyTemperature")
+            var selectedData = new Dictionary<string, object>();
+            selectedData.Add("id", doc.GetPropertyValue<string>("id"));
+            selectedData.Add("_ts", doc.GetPropertyValue<string>("_ts"));
+            foreach (var field in telemetryFields)
+            {
+                if (selectedFields.Contains(field))
+                {
+                    switch (field)
+                    {
+                        case "heartRate":
+                            selectedData.Add(field, doc.GetPropertyValue<int>("heartRate"));
+                            break;
+                        case "bloodPressureSystolic":
+                            selectedData.Add(field, doc.GetPropertyValue<int>("bloodPressureSystolic"));
+                            break;
+                        case "bloodPressureDiastolic":
+                            selectedData.Add(field, doc.GetPropertyValue<int>("bloodPressureDiastolic"));
+                            break;
+                        case "bodyTemperature":
+                            selectedData.Add(field, doc.GetPropertyValue<double>("bodyTemperature"));
+                            break;
+                    }
+                }
+            }
+            return selectedData;
         });
-
         var settings = new JsonSerializerSettings{
             Formatting = Formatting.Indented
         };
