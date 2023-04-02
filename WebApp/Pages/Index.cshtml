@@ -36,32 +36,46 @@
         <div>
             <input type="checkbox" id="bodyTemperatureCheckbox" name="bodyTemperatureCheckbox" value="bodyTemperature">
             <label for="bodyTemperatureCheckbox">Body Temperature</label>
+        </div>
+        <div>
+            <p>Select the order:</p>
+            <select id="dataOrder" name="dataOrder">
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+            </select>
+        </div>
+        <button onclick="updateTelemetryUrl()">Get Telemetry</button>
     </div>
-    <button onclick="updateTelemetryUrl()">Get Telemetry</button>
-    <iframe id="telemetryFrame" src="https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/{start}/{end}/{filter}" style="width:800px; height:600px;"></iframe>
+    <iframe id="telemetryFrame" src="https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/{start}/{end}/{filter}/{sort}" style="width:800px; height:600px;"></iframe>
 </div>
 
 <script>
     function updateTelemetryUrl() {
+        var telemetryUrl;
+        var chosenData = [];
+
         var startDate = document.getElementById("startDate").value;
         var startTime = document.getElementById("startTime").value;
         var endDate = document.getElementById("endDate").value;
         var endTime = document.getElementById("endTime").value;
-        var telemetryUrl;
+        
         var heartRateChecked = document.getElementById("heartRateCheckbox").checked;
         var bloodPressureSystolicChecked = document.getElementById("bloodPressureSystolicCheckbox").checked;
         var bloodPressureDiastolicChecked = document.getElementById("bloodPressureDiastolicCheckbox").checked;
         var bodyTemperatureChecked = document.getElementById("bodyTemperatureCheckbox").checked;
 
-        var chosenData = [];
+        var dataOrder = document.getElementById("dataOrder").value;
+
+        
         if (heartRateChecked) chosenData.push("heartRate");
         if (bloodPressureSystolicChecked) chosenData.push("bloodPressureSystolic");
         if (bloodPressureDiastolicChecked) chosenData.push("bloodPressureDiastolic");
         if (bodyTemperatureChecked) chosenData.push("bodyTemperature");
         var filter = chosenData.join(",");
+        
         if (startDate && startTime && endDate && endTime) 
         {
-            telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "T" + startTime + "/" + endDate + "T" + endTime + "/" + filter;
+            telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "T" + startTime + "/" + endDate + "T" + endTime + "/" + filter + "/" + dataOrder;
         } 
         else 
         {
@@ -69,7 +83,7 @@
             var defaultEndDate = new Date(); // System's current time
             startDate = defaultStartDate.toISOString().substring(0, 10);
             endDate = defaultEndDate.toISOString().substring(0, 10);
-            telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "T00:00" + "/" + endDate + "T23:59" + "/" + filter;
+            telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "T00:00" + "/" + endDate + "T23:59" + "/" + filter + "/" + dataOrder;
         }
         document.getElementById("telemetryFrame").src = telemetryUrl;
     }

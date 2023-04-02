@@ -67,7 +67,7 @@ namespace Uni.Assignment
         
         [FunctionName("GetTelemetry")]
         public static async Task<IActionResult> GetTelemetryAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/{start}/{end}/{filter?}")] HttpRequest req, string start, string end, string filter,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/{start}/{end}/{filter?}/{sort?}")] HttpRequest req, string start, string end, string filter, string sort,
         [CosmosDB(databaseName: "IoTData", 
         collectionName: "TelemetryData",
         ConnectionStringSetting = "cosmosDBConnectionString")]
@@ -81,7 +81,8 @@ namespace Uni.Assignment
         var selectedFields = filter.Split(',');
         var validFields = selectedFields.Intersect(telemetryFields);
         var selectClause = string.Join(",", validFields.Select(f => $"c.{f}"));
-        var queryText = $"SELECT c.id, c._ts, {selectClause} FROM c WHERE c._ts >= @startTimestamp AND c._ts <= @endTimestamp ORDER BY c._ts DESC";
+        var sortOption = sort?.ToUpper() == "ASC" ? "ASC" : "DESC";
+        var queryText = $"SELECT c.id, c._ts, {selectClause} FROM c WHERE c._ts >= @startTimestamp AND c._ts <= @endTimestamp ORDER BY c._ts {sortOption}";
         var query = new SqlQuerySpec
         {
             QueryText = queryText,
@@ -91,8 +92,6 @@ namespace Uni.Assignment
                 new SqlParameter("@endTimestamp", endTimestamp.ToUnixTimeSeconds())
             }
         };
-
-
         var collectionLink = UriFactory.CreateDocumentCollectionUri("IoTData", "TelemetryData");
         
         var queryOptions = new FeedOptions 
@@ -107,7 +106,8 @@ namespace Uni.Assignment
         {
             var selectedData = new Dictionary<string, object>();
             selectedData.Add("id", doc.GetPropertyValue<string>("id"));
-            selectedData.Add("_ts", doc.GetPropertyValue<string>("_ts"));
+            var timestamp = DateTimeOffset.FromUnixTimeSeconds(doc.GetPropertyValue<long>("_ts"));
+            selectedData.Add("_ts", timestamp.ToString("yyyy-MM-dd HH:mm:ss"));
             foreach (var field in telemetryFields)
             {
                 if (selectedFields.Contains(field))
