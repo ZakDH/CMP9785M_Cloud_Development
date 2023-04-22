@@ -67,7 +67,8 @@ namespace Uni.Assignment
         
         [FunctionName("GetTelemetry")]
         public static async Task<IActionResult> GetTelemetryAsync(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/{start}/{end}/{filter?}/{sort?}")] HttpRequest req, string start, string end, string filter, string sort,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "telemetrydata/{start}/{end}/{filter?}/{sort?}")] HttpRequest req,
+        string start, string end, string filter, string sort,
         [CosmosDB(databaseName: "IoTData", 
         collectionName: "TelemetryData",
         ConnectionStringSetting = "cosmosDBConnectionString")]
