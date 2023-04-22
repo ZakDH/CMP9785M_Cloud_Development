@@ -1,0 +1,15 @@
+{
+    "$schema": "http://json.schemastore.org/proxies",
+    "proxies": {
+        "loaderio-verifier": {
+            "matchCondition": {
+                "methods": [ "GET" ],
+                "route": "/loaderio-dea476349104ff6a79862ad22eec509f"
+            },
+            "responseOverrides": {
+                "response.body": "loaderio-dea476349104ff6a79862ad22eec509f",
+                "response.headers.Content-Type": "text/plain"
+            }
+        }
+    }
+}
