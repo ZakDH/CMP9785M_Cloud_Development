@@ -1,51 +1,62 @@
 ﻿@page
 @model IndexModel
 @{
+    //sets page title
     ViewData["Title"] = "Home page";
 }
 
 <div class="text-center">
+    <!--sets format for time selection-->
     <h1 class="display-4">Simulation Data Values</h1>
     <p></p>
     <div>
-        <label for="startDate">Start Date:</label>
+        <label for="startDate">Start Date:</label> <!--sets format of start date-->
         <input type="date" id="startDate" name="startDate">
-        <label for="startTime">Start Time:</label>
+        <label for="startTime">Start Time:</label> <!--sets format of start time-->
         <input type="time" id="startTime" name="startTime">
     </div>
     <div>
-        <label for="endDate">End Date:</label>
+        <label for="endDate">End Date:</label> <!--sets format of end date-->
         <input type="date" id="endDate" name="endDate">
-        <label for="endTime">End Time:</label>
+        <label for="endTime">End Time:</label> <!--sets format of end time-->
         <input type="time" id="endTime" name="endTime">
     </div>
     <div>
+        <!--creates webpage format which each optional route-->
         <p>Select which data to display:</p>
         <div>
+            <!--sets checkbox format for each simulation data field -->
             <input type="checkbox" id="heartRateCheckbox" name="heartRateCheckbox" value="heartRate">
-            <label for="heartRateCheckbox">Heart Rate</label>
+            <!--sets checkbox name for data field-->
+            <label for="heartRateCheckbox">Heart Rate</label> 
         </div>
         <div>
             <input type="checkbox" id="bloodPressureSystolicCheckbox" name="bloodPressureSystolicCheckbox" value="bloodPressureSystolic">
+            <!--sets checkbox name for data field-->
             <label for="bloodPressureSystolicCheckbox">Blood Pressure Systolic</label>
         </div>
         <div>
             <input type="checkbox" id="bloodPressureDiastolicCheckbox" name="bloodPressureDiastolicCheckbox" value="bloodPressureDiastolic">
+            <!--sets checkbox name for data field-->
             <label for="bloodPressureDiastolicCheckbox">Blood Pressure Diastolic</label>
         </div>
         <div>
             <input type="checkbox" id="bodyTemperatureCheckbox" name="bodyTemperatureCheckbox" value="bodyTemperature">
+            <!--sets checkbox name for data field-->
             <label for="bodyTemperatureCheckbox">Body Temperature</label>
         </div>
         <div>
             <p>Select the order:</p>
+            <!--sets format for order as drop down menu-->
             <select id="dataOrder" name="dataOrder">
                 <option value="asc">Ascending</option>
                 <option value="desc">Descending</option>
             </select>
         </div>
+        <!--once button is clicked function is activated-->
         <button onclick="updateTelemetryUrl()">Get Telemetry</button>
     </div>
+    <!--sets webpage frame to the function route-->
     <iframe id="telemetryFrame" src="https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/{start}/{end}/{filter}/{sort}" style="width:800px; height:600px;"></iframe>
 </div>
 
@@ -53,38 +64,44 @@
     function updateTelemetryUrl() {
         var telemetryUrl;
         var chosenData = [];
-
+        //sets variables equal to corresponding selection made in web app config above
         var startDate = document.getElementById("startDate").value;
         var startTime = document.getElementById("startTime").value;
         var endDate = document.getElementById("endDate").value;
         var endTime = document.getElementById("endTime").value;
-        
+        //sets variables equal to corresponding selection from checklist in web app config above
         var heartRateChecked = document.getElementById("heartRateCheckbox").checked;
         var bloodPressureSystolicChecked = document.getElementById("bloodPressureSystolicCheckbox").checked;
         var bloodPressureDiastolicChecked = document.getElementById("bloodPressureDiastolicCheckbox").checked;
         var bodyTemperatureChecked = document.getElementById("bodyTemperatureCheckbox").checked;
-
+        //sets variable equal to corresponding data order in config above
         var dataOrder = document.getElementById("dataOrder").value;
-
-        
+        //checks to see if options are checked or not
+        //if options are checked then push onto chosen data array
         if (heartRateChecked) chosenData.push("heartRate");
         if (bloodPressureSystolicChecked) chosenData.push("bloodPressureSystolic");
         if (bloodPressureDiastolicChecked) chosenData.push("bloodPressureDiastolic");
         if (bodyTemperatureChecked) chosenData.push("bodyTemperature");
+        //joins chosen data array by commas into filter variable
         var filter = chosenData.join(",");
-        
+        //if start date/time and end date/time are selected then add them to function route
         if (startDate && startTime && endDate && endTime) 
         {
             telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "T" + startTime + "/" + endDate + "T" + endTime + "/" + filter + "/" + dataOrder;
         } 
+        //if start and end date/time aren't selected then set to default unix value
         else 
         {
-            var defaultStartDate = new Date(0); // Unix time frame origin
-            var defaultEndDate = new Date(); // System's current time
+            //unix time frame origin
+            var defaultStartDate = new Date(0); 
+            //system's current time
+            var defaultEndDate = new Date(); 
+            //sets default start and end dates to string
             startDate = defaultStartDate.toISOString().substring(0, 10);
             endDate = defaultEndDate.toISOString().substring(0, 10);
             telemetryUrl = "https://zakdhtelemetry.azurewebsites.net/api/telemetrydata/" + startDate + "T00:00" + "/" + endDate + "T23:59" + "/" + filter + "/" + dataOrder;
         }
+        //sets the telemetryframe element to the results of 'telemetryUrl' value which holds function route
         document.getElementById("telemetryFrame").src = telemetryUrl;
     }
 </script>
