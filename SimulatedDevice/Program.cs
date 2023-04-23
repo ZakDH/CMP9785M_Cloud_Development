@@ -58,11 +58,12 @@ namespace SimulatedDevice
             Console.CancelKeyPress += (sender, eventArgs) =>
             {
                 eventArgs.Cancel = true;
-                cts.Cancel(); //cancel telemetry loop when the user presses control c
+                //cancel telemetry loop when the user presses control c
+                cts.Cancel(); 
                 Console.WriteLine("Exiting...");
             };
 
-            // Run the telemetry loop
+            //run the telemetry loop
             await SendDeviceToCloudMessagesAsync(cts.Token);
 
             //clean up resources when telemetry loop stops
@@ -70,51 +71,58 @@ namespace SimulatedDevice
             Console.WriteLine("Device simulator finished.");
         }
 
-        //Used to set an interval between each telemetry message
+        //used to set an interval between each telemetry message
         private static Task<MethodResponse> SetTelemetryInterval(MethodRequest methodRequest, object userContext){
             string data = Encoding.UTF8.GetString(methodRequest.Data);
             if (int.TryParse(data, out int telemetryIntervalInSeconds))
             {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"Telemetry interval set to {s_telemetryInterval}"); //sets the interval time to s_telemetryInterval value (5)
+                //sets the interval time to s_telemetryInterval value (5)
+                Console.WriteLine($"Telemetry interval set to {s_telemetryInterval}"); 
                 Console.ResetColor();
 
-                // Acknowledge the direct method call with a 200 success message.
+                //acknowledge the direct method call with a 200 success message.
                 string result = $"{{\"result\":\"Executed direct method: {methodRequest.Name}\"}}";
                 return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 200));
             }
             else
             {
-                // Acknowledge the direct method call with a 400 error message.
+                //acknowledge the direct method call with a 400 error message.
                 string result = "{\"result\":\"Invalid parameter\"}";
                 return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 400));
             }
         }
 
 
-        //Validate the connection string otherwise throw error message.
+        //validate the connection string otherwise throw error message.
         private static void ValidateConnectionString(string[] args)
         {
             if (args.Any()) //check if arguments are passed
             {
                 try
                 {
-                    var cs = IotHubConnectionStringBuilder.Create(args[0]); //try create IoT connection from first argument 
-                    s_connectionString = cs.ToString(); //store connection string in variable
+                    //try create IoT connection from first argument 
+                    var cs = IotHubConnectionStringBuilder.Create(args[0]); 
+                    //store connection string in variable
+                    s_connectionString = cs.ToString(); 
                 }
                 catch (Exception)
                 {
                     Console.WriteLine($"Error: Unrecognizable parameter '{args[0]}' as connection string.");
-                    Environment.Exit(1); //exit program with error message above
+                    //exit program with error message above
+                    Environment.Exit(1); 
                 }
             }
-            else //if no arguments are passed
+            //if no arguments are passed
+            else 
             {
                 try
                 {
-                    _ = IotHubConnectionStringBuilder.Create(s_connectionString); //create iot connection from connection string 
+                    //create iot connection from connection string 
+                    _ = IotHubConnectionStringBuilder.Create(s_connectionString); 
                 }
-                catch (Exception) //if connection string is not valid exit program with error message
+                //if connection string is not valid exit program with error message
+                catch (Exception) 
                 {
                     Console.WriteLine("This sample needs a device connection string to run. Program.cs can be edited to specify it, or it can be included on the command-line as the only parameter.");
                     Environment.Exit(1); 
@@ -136,28 +144,38 @@ namespace SimulatedDevice
                 {
                     new TelemetryData
                     {
-                        heartRate = (int)Math.Ceiling(50 + rand.NextDouble() * 50), //gives random number between 50 and 100 - rounded to nearest whole number
-                        bloodPressureSystolic = rand.Next(90, 140), //gives random number between 90 and 140
-                        bloodPressureDiastolic = rand.Next(60, 90), //gives random number between 60 and 90
-                        bodyTemperature = Math.Round(36.5 + rand.NextDouble() * 3, 1), //gives random number between 36.5 and 39.5 and rounded to 1 decimal place
-                        deviceId = "zakdh_simdevice" //assigns id to simulated device
+                        //gives random number between 50 and 100 - rounded to nearest whole number
+                        heartRate = (int)Math.Ceiling(50 + rand.NextDouble() * 50), 
+                        //gives random number between 90 and 140
+                        bloodPressureSystolic = rand.Next(90, 140), 
+                        //gives random number between 60 and 90
+                        bloodPressureDiastolic = rand.Next(60, 90), 
+                        //gives random number between 36.5 and 39.5 and rounded to 1 decimal place
+                        bodyTemperature = Math.Round(36.5 + rand.NextDouble() * 3, 1), 
+                        //assigns id to simulated device
+                        deviceId = "zakdh_simdevice" 
                     },
                 };
                 JsonSerializerSettings settings = new JsonSerializerSettings { Formatting = Formatting.Indented };
 
-                var telemetryJson = JsonConvert.SerializeObject(telemetryDataArray, settings); //serialises the JSON payload so it can be transmitted to IoT hub
+                //serialises the JSON payload so it can be transmitted to IoT hub
+                var telemetryJson = JsonConvert.SerializeObject(telemetryDataArray, settings); 
                 var telemetryMessage = new Message(Encoding.ASCII.GetBytes(telemetryJson));
 
-                telemetryMessage.Properties.Add("heartRateAlert", (telemetryDataArray[0].heartRate > 90) ? "true" : "false"); //sets alert to true if heart rate is greater than 90
-                telemetryMessage.Properties.Add("bloodPressureSystolicAlert", (telemetryDataArray[0].bloodPressureSystolic > 120) ? "true" : "false"); //alert is equal to true if blood pressure is above 120
-                telemetryMessage.Properties.Add("bloodPressureDiastolicAlert", (telemetryDataArray[0].bloodPressureDiastolic > 80) ? "true" : "false");//alert is equal to true if blood pressure is above 80
-                telemetryMessage.Properties.Add("bodyTemperatureAlert", (telemetryDataArray[0].bodyTemperature > 38) ? "true" : "false"); //alert is equal to true if body temperature is above 38
-
-                await s_deviceClient.SendEventAsync(telemetryMessage); //sends telemetry data to IoT hub
-
-                Console.WriteLine($"{DateTime.Now} > Sending message: {telemetryJson}"); //displays telemetry data to console 
-
-                await Task.Delay(s_telemetryInterval); //next message is sent after s_telemetryInterval is passed - 5 seconds
+                //sets alert to true if heart rate is greater than 90
+                telemetryMessage.Properties.Add("heartRateAlert", (telemetryDataArray[0].heartRate > 90) ? "true" : "false"); 
+                //alert is equal to true if blood pressure is above 120
+                telemetryMessage.Properties.Add("bloodPressureSystolicAlert", (telemetryDataArray[0].bloodPressureSystolic > 120) ? "true" : "false"); 
+                //alert is equal to true if blood pressure is above 80
+                telemetryMessage.Properties.Add("bloodPressureDiastolicAlert", (telemetryDataArray[0].bloodPressureDiastolic > 80) ? "true" : "false");
+                //alert is equal to true if body temperature is above 38
+                telemetryMessage.Properties.Add("bodyTemperatureAlert", (telemetryDataArray[0].bodyTemperature > 38) ? "true" : "false"); 
+                //sends telemetry data to IoT hub
+                await s_deviceClient.SendEventAsync(telemetryMessage); 
+                //displays telemetry data to console 
+                Console.WriteLine($"{DateTime.Now} > Sending message: {telemetryJson}");
+                //next message is sent after s_telemetryInterval is passed - 5 seconds
+                await Task.Delay(s_telemetryInterval); 
             }
         }
     }
