@@ -37,7 +37,7 @@ namespace SimulatedDevice
         private static TimeSpan s_telemetryInterval = TimeSpan.FromSeconds(5); //allows for 5 second delay between each message
 
         // The device connection string to authenticate the device with your IoT hub.
-        private static string s_connectionString = "HostName=ZakDHTempSensorHub.azure-devices.net;DeviceId=zakdh_simdevice;SharedAccessKey=62akxBWSOQ/wCItrYHGM/soDDarf3IB6RCkl2hkdMi8=";
+        private static string s_connectionString = "HostName=ZakDHTempSensorHub.azure-devices.net;DeviceId=zakdh_simdevice;SharedAccessKey=uj+eyQFcn/h2at+H+Q+ifZfWVP8iBKDuhCPsU9MpBEg=";
 		
         private static async Task Main(string[] args)
         {
